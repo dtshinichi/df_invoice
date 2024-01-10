@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-5">
+        <h1>記事スクレイピング</h1>
+        <form id="scraping-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="writer_name">ライター名: （https://news.denfaminicogamer.jp/tag/◯◯ の部分）</label>
+                <input type="text" class="form-control" id="writer_name" required>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="start_date">開始日:</label>
+                        <input type="date" class="form-control" id="start_date" required>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="end_date">終了日:</label>
+                        <input type="date" class="form-control" id="end_date" required>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">記事を取得</button>
+        </form>
+        <div id="result"></div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-12">
+        <h2>使い方と注意点</h2>
+        <ul>
+            <li>ライター名と日時の範囲を指定すると、該当範囲のタグに一致する記事の日付、タイトル、URLをCSV形式で出力します。</li>
+            <li>一度に抽出できる記事数は20ページ（400記事）までです。</li>
+            <li>タグを参照しているため、タグに名前がなくライタープロフィールのみに記載があるケースは抽出できません。</li>
+            <li>ニュース・インタビュー・特集記事など区別なく抽出するので、ご自身で確認をお願いします。</li>
+            <li>存在しないタグを入力するとエラーが出ます。</li>
+            <li>完璧な動作を保証するものではありません。必ずご自身でダブルチェックをお願いします。</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('scraping-form');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const writerName = document.getElementById('writer_name').value;
+        const startDate = document.getElementById('start_date').value;
+        const endDate = document.getElementById('end_date').value;
+
+        fetch('/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: `writer_name=${writerName}&start_date=${startDate}&end_date=${endDate}`,
+        })        
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const filename = `${writerName}_articles_${startDate.replace("-", "_")}_to_${endDate.replace("-", "_")}.csv`;
+            const message = `
+                取得した記事の数: ${response.headers.get('Article-Count')}
+            `;
+            resultDiv.innerHTML = '<p>スクレイピングが成功しました。ファイルをダウンロードしてください:</p>';
+            resultDiv.innerHTML += `<p>${message}</p>`;
+            return response.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const filename = `${writerName}_articles_${startDate.replace("-", "_")}_to_${endDate.replace("-", "_")}.csv`;
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.textContent = filename;
+            resultDiv.appendChild(link);
+        })
+        .catch(error => {
+            resultDiv.innerHTML = `<p>エラーが発生しました: ${error}</p>`;
+        });
+    });
+});
+</script>
+
+{% endblock %}
