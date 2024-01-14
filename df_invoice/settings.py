@@ -32,7 +32,7 @@ SECRET_KEY = "django-insecure-c!#8)i-y&v7iq)(7lfbs4z(r6#%2w%l$k=jk1yhuk$0=128z9c
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['onrender.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'django-render-y2zc.onrender.com']
 
 
 # Application definition
@@ -126,8 +126,6 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = str(BASE_DIR / "staticfiles")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 SUPERUSER_NAME = env("SUPERUSER_NAME")
 SUPERUSER_EMAIL = env("SUPERUSER_EMAIL")
