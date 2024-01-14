@@ -7,7 +7,7 @@ import time
 
 # 設定ファイルの読み込み
 config = configparser.ConfigParser()
-config.read('settings.ini')
+config.read('../settings.ini')
 
 # メンテナンスモードの確認
 maintenance_mode = config.getboolean('DEFAULT', 'MaintenanceMode')
